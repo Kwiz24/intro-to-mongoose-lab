@@ -1,9 +1,8 @@
-const express = require('express')
-const nodemon = require('nodemon')
 const dotenv = require('dotenv');
 const prompt = require('prompt-sync')();
-dotenv.config();
 const mongoose = require('mongoose');
+
+dotenv.config();
 
 require('dotenv').config();
 
@@ -27,7 +26,7 @@ function displayMenu() {
   console.log('  2. View all customers');
   console.log('  3. Update a customer');
   console.log('  4. Delete a customer');
-  console.log('  5. Quit\n');
+  console.log('  5. Exit\n');
 }
 
 function getUserChoice() {
@@ -75,46 +74,51 @@ function createCustomer() {
 }
 
 async function viewAllCustomers() {
-  console.log('Viewing all customers\n');
-  try {
-    const customers = await Customer.find();
-    customers.forEach((customer) => {
-      console.log(`id: ${customer._id} -- Name: ${customer.name}, Age: ${customer.age}`);
-    });
-  } catch (err) {
-    console.error('Error fetching customers:', err.message);
+    console.log('Viewing all customers\n');
+    try {
+      const customers = await Customer.find();
+      customers.forEach((customer) => {
+        console.log(`id: ${customer._id} -- Name: ${customer.name}, Age: ${customer.age}`);
+      });
+    } catch (err) {
+      console.error('Error fetching customers:', err.message);
+    }
   }
-}
-
-async function updateCustomer() {
-  console.log('Updating a customer\n');
-  await viewAllCustomers();
-  const customerId = prompt('Copy and paste the id of the customer you would like to update here: ');
-  const customer = await Customer.findById(customerId);
-  if (!customer) {
-    console.log('Customer not found');
-    return;
+  
+  async function updateCustomer() {
+    console.log('Updating a customer\n');
+    await viewAllCustomers();
+    const customerId = prompt('Copy and paste the id of the customer you would like to update here: ');
+    try {
+      const customer = await Customer.findById(customerId);
+      if (!customer) {
+        console.log('Customer not found');
+        return;
+      }
+      const newName = prompt('What is the customer\'s new name? ');
+      const newAge = parseInt(prompt('What is the customer\'s new age? '));
+      customer.name = newName;
+      customer.age = newAge;
+      await customer.save();
+      console.log('Customer updated successfully');
+    } catch (err) {
+      console.error('Error updating customer:', err.message);
+    }
   }
-  const newName = prompt('What is the customer\'s new name? ');
-  const newAge = parseInt(prompt('What is the customer\'s new age? '));
-  customer.name = newName;
-  customer.age = newAge;
-  try {
-    await customer.save();
-    console.log('Customer updated successfully');
-  } catch (err) {
-    console.error('Error updating customer:', err.message);
+  
+  async function deleteCustomer() {
+    console.log('Deleting a customer\n');
+    await viewAllCustomers();
+    const customerId = prompt('Copy and paste the id of the customer you would like to delete here: ');
+    try {
+      const deletedCustomer = await Customer.findByIdAndDelete(customerId);
+      if (deletedCustomer) {
+        console.log('Customer deleted successfully');
+      } else {
+        console.log('Customer not found');
+      }
+    } catch (err) {
+      console.error('Error deleting customer:', err.message);
+    }
   }
-}
-
-async function deleteCustomer() {
-  console.log('Deleting a customer\n');
-  await viewAllCustomers();
-  const customerId = prompt('Copy and paste the id of the customer you would like to delete here: ');
-  try {
-    await Customer.findByIdAndDelete(customerId);
-    console.log('Customer deleted successfully');
-  } catch (err) {
-    console.error('Error deleting customer:', err.message);
-  }
-}
+  
